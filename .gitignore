@@ -1,0 +1,17 @@
+# Python temporary bytecode cache
+**/pycache/
+*.pyc
+
+# PyCharm project settings (personal IDE preferences)
+.idea/
+
+
+# Virtual environment (keeps giant libraries off GitHub)
+.venv/
+venv/
+ENV/
+
+
+# OS files
+.DS_Store
+Thumbs.db
