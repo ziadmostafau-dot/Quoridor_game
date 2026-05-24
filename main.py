@@ -15,7 +15,7 @@ class Game:
         self.font = pygame.font.Font('freesansbold.ttf', 30)
         self.mode = "neutral"
 
-    def draw_game_state(self, game_state):
+    def draw_board(self, game_state):
         for row in range(9):
             for col in range(9):
                 pygame.draw.rect(self.display_surface, FG_COLOR, ((SQUARE_SIZE + WALL_THICKNESS) * col,
@@ -42,6 +42,7 @@ class Game:
             pygame.draw.rect(self.display_surface, WALL_COLOR, (x_pos, y_pos, 2 * SQUARE_SIZE + WALL_THICKNESS,
                                                                 WALL_THICKNESS))
 
+    def draw_game_information(self, game_state):
         turn_text = "Red player" if game_state.first_player_turn else "Blue player"
         self.display_surface.blit(self.font.render(f"{turn_text}'s turn", True, FONT_COLOR),
                                   ((SQUARE_SIZE + WALL_THICKNESS) * 9, 0))
@@ -67,26 +68,39 @@ class Game:
         pygame.draw.rect(self.display_surface, FG_COLOR, ((SQUARE_SIZE + WALL_THICKNESS) * 9, 400, 300, 50))
         self.display_surface.blit(self.font.render("Place vertical wall", True, FONT_COLOR),
                                   ((SQUARE_SIZE + WALL_THICKNESS) * 9, 412))
+
+    def draw_highlighting(self, game_state):
+        x_position, y_position = pygame.mouse.get_pos()
+        x_position = x_position // (SQUARE_SIZE + WALL_THICKNESS)
+        x_position = 7 if x_position > 7 else x_position
+        y_position = y_position // (SQUARE_SIZE + WALL_THICKNESS)
+        y_position = 7 if y_position > 7 else y_position
+
         if self.mode == "vertical_wall":
-            x_position, y_position = pygame.mouse.get_pos()
-            x_position = x_position // (SQUARE_SIZE + WALL_THICKNESS)
-            x_position = 7 if x_position > 7 else x_position
+            color = WALL_HIGHLIGHT if game_state.can_place_wall((x_position, y_position),
+                                                                "vertical_wall") else INVALID_WALL
             x_position = x_position * (SQUARE_SIZE + WALL_THICKNESS) + SQUARE_SIZE
-            y_position = y_position // (SQUARE_SIZE + WALL_THICKNESS)
-            y_position = 7 if y_position > 7 else y_position
             y_position *= (SQUARE_SIZE + WALL_THICKNESS)
-            pygame.draw.rect(self.display_surface, WALL_HIGHLIGHT,
+            pygame.draw.rect(self.display_surface, color,
                              (x_position, y_position, WALL_THICKNESS, 2 * SQUARE_SIZE + WALL_THICKNESS))
         elif self.mode == "horizontal_wall":
-            x_position, y_position = pygame.mouse.get_pos()
-            x_position = x_position // (SQUARE_SIZE + WALL_THICKNESS)
-            x_position = 7 if x_position > 7 else x_position
+            color = WALL_HIGHLIGHT if game_state.can_place_wall((x_position, y_position),
+                                                                "horizontal_wall") else INVALID_WALL
             x_position *= (SQUARE_SIZE + WALL_THICKNESS)
-            y_position = y_position // (SQUARE_SIZE + WALL_THICKNESS)
-            y_position = 7 if y_position > 7 else y_position
             y_position = y_position * (SQUARE_SIZE + WALL_THICKNESS) + SQUARE_SIZE
-            pygame.draw.rect(self.display_surface, WALL_HIGHLIGHT,
+            pygame.draw.rect(self.display_surface, color,
                              (x_position, y_position, 2 * SQUARE_SIZE + WALL_THICKNESS, WALL_THICKNESS))
+        elif self.mode == "neutral":
+            highlighted_squares = game_state.check_movement()
+            for square in highlighted_squares:
+                pygame.draw.rect(self.display_surface, SQUARE_HIGHLIGHT, ((SQUARE_SIZE + WALL_THICKNESS) * square[0],
+                                                                          (SQUARE_SIZE + WALL_THICKNESS) * square[1],
+                                                                          SQUARE_SIZE, SQUARE_SIZE))
+
+    def draw_game(self, game_state):
+        self.draw_board(game_state)
+        self.draw_game_information(game_state)
+        self.draw_highlighting(game_state)
 
     def run(self):
         while self.running:
@@ -95,7 +109,7 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.gs.winner == "":
                     x_coord = event.pos[0] // (SQUARE_SIZE + WALL_THICKNESS)
                     y_coord = event.pos[1] // (SQUARE_SIZE + WALL_THICKNESS)
                     if x_coord < 9 and y_coord < 9 and self.mode == "neutral":
@@ -130,7 +144,7 @@ class Game:
 
             # draw
             self.display_surface.fill(BG_COLOR)
-            self.draw_game_state(self.gs)
+            self.draw_game(self.gs)
             pygame.display.update()
 
         pygame.quit()
