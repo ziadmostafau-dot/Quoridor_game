@@ -1,5 +1,3 @@
-import pygame
-
 BG_COLOR = '#573B1C'
 FG_COLOR = '#7A4C1A'
 SQUARE_SIZE = 50
