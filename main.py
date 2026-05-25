@@ -151,10 +151,11 @@ class Game:
                     y_coord = event.pos[1] // (SQUARE_SIZE + WALL_THICKNESS)
 
                     # Select the game mode (Human or AI)
-                    if self.menu and 1 <= x_coord < 8 and 3 <= y_coord < 7:
-                        modes = ["human", "easy", "medium", "hard"]
-                        self.mode = modes[y_coord - 3]
-                        self.menu = False
+                    if self.menu:
+                        if 1 <= x_coord < 8 and 3 <= y_coord < 7:
+                            modes = ["human", "easy", "medium", "hard"]
+                            self.mode = modes[y_coord - 3]
+                            self.menu = False
                     else:
                         # check if the coordinates are inside the board and if the player is trying to move a pawn
                         if x_coord < 9 and y_coord < 9 and self.phase == "neutral":

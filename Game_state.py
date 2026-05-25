@@ -89,6 +89,7 @@ class GameState:
             if store_undo:
                 self.redo_moves.append([move_type, pos])
         self.move_log.pop()
+        self.winner = ""
 
     def redo(self):
         if not self.redo_moves:
@@ -100,9 +101,11 @@ class GameState:
             if self.first_player_turn:
                 self.move_log.append(["move", self.first_player_pos])
                 self.first_player_pos = pos
+                self.winner = "first_player" if pos[1] == 8 else ""
             else:
                 self.move_log.append(["move", self.second_player_pos])
                 self.second_player_pos = pos
+                self.winner = "second_player" if pos[1] == 0 else ""
         elif move_type in ["horizontal", "vertical"]:
             if self.first_player_turn:
                 self.first_player_walls -= 1
@@ -228,17 +231,18 @@ class GameState:
             self.vertical_walls.add(pos)
 
         # Apply BFS to know if both players have a path to victory
-        first_player_path = self.shortest_path(tuple(self.first_player_pos), 8)
-        second_player_path = self.shortest_path(tuple(self.second_player_pos), 0)
+        if not self.shortest_path(tuple(self.first_player_pos), 8):
+            if orientation == "horizontal_wall":
+                self.horizontal_walls.remove(pos)
+            elif orientation == "vertical_wall":
+                self.vertical_walls.remove(pos)
+            return False  # Short-circuit exit
 
-        # Remove the wall that was temporarily added
         if orientation == "horizontal_wall":
             self.horizontal_walls.remove(pos)
         elif orientation == "vertical_wall":
             self.vertical_walls.remove(pos)
-
-        # If both players have a path to victory, return True
-        return first_player_path and second_player_path
+        return bool(self.shortest_path(tuple(self.second_player_pos), 0))
 
     def get_all_wall_moves(self):
         all_legal_wall_moves = []
